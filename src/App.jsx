@@ -63,7 +63,7 @@ export default class App extends React.Component {
           chats: chats,
         });
 
-        setTimeout(() => this.displayNextQuestion(nextQuestionId), 300);
+        setTimeout(() => this.displayNextQuestion(nextQuestionId), 2000);
 
         break;
     }

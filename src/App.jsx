@@ -1,4 +1,4 @@
-// develop ブランチ
+// feature
 
 import React from "react";
 import "./assets/styles/style.css";

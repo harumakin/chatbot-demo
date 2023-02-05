@@ -1,51 +1,46 @@
 // feature
 
-import React from "react";
+import React {useState, useEffect, useCallback} from "react";
 import "./assets/styles/style.css";
 
 import defaultDataset from "./dataset";
 import { AnswersList, Chats } from "./components";
 import FormDialog from "./components/Forms/FormDialog";
+import { useCallback, useEffect, useState } from "react";
 
-export default class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      answers: [],
-      chats: [],
-      currentId: "init",
-      dataset: defaultDataset,
-      open: false,
-    };
+const App = () => {
+  const [answers, setAnswers] = useState([])
+  const [chats, setChats] = useState([])
+  const [currentId, setCurrentId] = useState("init")
+  const [dataset, setDataset] = useState({})
+  const [open, setOpen] = useState(false)
+
     this.selectAnswer = this.selectAnswer.bind(this);
     this.handleClickOpen = this.handleClickOpen.bind(this);
     this.handleClose = this.handleClose.bind(this);
-  }
 
-  displayNextQuestion = (nextQuestionId) => {
+  const displayNextQuestion = (nextQuestionId, nextDataset) => {
     const chats = this.state.chats;
-    chats.push({
-      text: this.state.dataset[nextQuestionId].question,
+    addChats({
+      text: nextDataset.question,
       type: "question",
     });
 
-    this.setState({
-      answers: this.state.dataset[nextQuestionId].answers,
-      chats: chats,
-      currentId: nextQuestionId,
-    });
+      setAnswers(nextDataset.answers)
+      setCurrentId(nextQuestionId)
+    };
   };
 
-  selectAnswer = (selectedAnser, nextQuestionId) => {
+  const selectAnswer = (selectedAnser, nextQuestionId) => {
     switch (true) {
       case nextQuestionId === "init":
         setTimeout(() => {
-          this.displayNextQuestion(nextQuestionId);
+          displayNextQuestion(nextQuestionId, dataset[nextQuestionId]);
         }, 300);
         break;
 
       case nextQuestionId === "contact":
-        this.handleClickOpen();
+        handleClickOpen();
         break;
 
       case /^https:*/.test(nextQuestionId):
@@ -55,34 +50,37 @@ export default class App extends React.Component {
         a.click();
         break;
       default:
-        const chats = this.state.chats;
-        chats.push({
+        
+       addChats ({
           text: selectedAnser,
           type: "answer",
         });
 
-        this.setState({
-          chats: chats,
-        });
-
-        setTimeout(() => this.displayNextQuestion(nextQuestionId), 2000);
+        setTimeout(() => displayNextQuestion(nextQuestionId, dataset[nextQuestionId]), 2000);
 
         break;
     }
   };
 
-  handleClickOpen = () => {
-    this.setState({ open: true });
+  const addChats = (chat) => {
+    setChats(prevChats => {
+      // 前回のチャットに対して今回のチャットを追加する
+      return [...prevChats, chat]
+    })
+  }
+
+  const handleClickOpen = () => {
+    setOpen(true)
   };
 
-  handleClose = () => {
-    this.setState({ open: false });
-  };
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
 
-  componentDidMount() {
+  useEffect(() => {
     const initAnswer = "";
     this.selectAnswer(initAnswer, this.state.currentId);
-  }
+  }, [])
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     const scrollArea = document.getElementById("scroll-area");
@@ -91,18 +89,19 @@ export default class App extends React.Component {
     }
   }
 
-  render() {
-    return (
-      <section className="c-section">
-        <div className="c-box">
-          <Chats chats={this.state.chats} />
-          <AnswersList
-            answers={this.state.answers}
-            select={this.selectAnswer}
-          />
-          <FormDialog open={this.state.open} handleClose={this.handleClose} />
-        </div>
-      </section>
-    );
-  }
+
+  return (
+    <section className="c-section">
+      <div className="c-box">
+        <Chats chats={chats} />
+        <AnswersList
+          answers={answers}
+          select={selectAnswer}
+        />
+        <FormDialog open={open} handleClose={handleClose} />
+      </div>
+    </section>
+  );
 }
+
+export default App
